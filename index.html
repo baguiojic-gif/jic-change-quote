@@ -1,0 +1,761 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JIC 現地変更見積</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root{
+  --red:#B8202E; --red-soft:#fbeeee; --ink:#1c1c1e; --sub:#6e6e73; --mute:#9a9aa0;
+  --line:#e7e4df; --bg:#f5f4f1; --card:#ffffff; --soft:#faf9f7;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Noto Sans JP',system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:36px 16px 96px}
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:28px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:14px}
+.logo-img{height:52px;width:auto;display:block}
+.brand h1{margin:0;font-size:19px;font-weight:700;letter-spacing:.02em}
+.brand p{margin:2px 0 0;color:var(--sub);font-size:12.5px}
+.ver{font-size:12px;color:var(--mute)}
+.guide{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--red);border-radius:14px;padding:20px 24px;margin-bottom:20px}
+.guide-title{font-size:11px;letter-spacing:.14em;color:var(--red);font-weight:700;margin-bottom:10px}
+.guide ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.guide li{display:flex;gap:12px;align-items:flex-start;font-size:14px}
+.guide .no{flex:none;width:24px;height:24px;border-radius:50%;background:var(--soft);border:1px solid var(--line);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.guide li.key .no{background:var(--red);border-color:var(--red);color:#fff}
+.guide li.key b{color:var(--red)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:880px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px}
+.card + .card{margin-top:0}
+.step{font-size:11px;letter-spacing:.14em;color:var(--red);font-weight:700;margin-bottom:2px}
+.card h2{margin:0 0 18px;font-size:16px;font-weight:700}
+.field{display:block;margin-bottom:14px}
+.field > span{display:block;font-size:12px;color:var(--sub);margin-bottom:5px;font-weight:500}
+.field small{color:var(--mute);font-weight:400}
+input,select,textarea{width:100%;padding:10px 12px;border:1px solid #d8d5cf;border-radius:8px;font:inherit;font-size:14px;background:#fff;color:var(--ink);transition:border-color .15s, box-shadow .15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 3px rgba(184,32,46,.12)}
+input[type=number]{font-variant-numeric:tabular-nums}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row3{display:grid;grid-template-columns:1.3fr 1fr;gap:12px}
+.picker{background:var(--soft);border:1px dashed #dcd8d1;border-radius:10px;padding:12px 14px 2px;margin-bottom:16px}
+.picker .lbl{font-size:11.5px;color:var(--sub);margin-bottom:8px}
+.alert-old{display:flex;gap:10px;align-items:flex-start;background:var(--red-soft);border:1px solid #f0c4c8;border-radius:10px;padding:12px 14px;margin:-4px 0 18px;font-size:12.5px;color:#7a1620;line-height:1.6}
+.alert-old b{font-size:13.5px;color:var(--red)}
+.alert-old .ic{flex:none;width:22px;height:22px;border-radius:50%;background:var(--red);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:4px;gap:4px}
+.seg button{border:none;background:none;border-radius:7px;padding:10px 8px;font-weight:500;color:var(--sub)}
+.seg button:hover{background:#fff}
+.seg button.on{background:#fff;color:var(--ink);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.seg button[data-mode=manual].on{color:var(--red)}
+.mode-info{display:flex;gap:10px;align-items:flex-start;background:#f1f7f2;border:1px solid #cfe3d3;border-radius:10px;padding:12px 14px;margin:-4px 0 18px;font-size:12.5px;color:#2f5a37;line-height:1.6}
+.mode-info b{font-size:13.5px;color:#245b30}
+.mode-info .ic{flex:none;width:22px;height:22px;border-radius:50%;background:#3a7d47;color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.amounts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+@media(max-width:560px){.amounts{grid-template-columns:1fr}}
+.per{display:flex;align-items:center;flex-wrap:wrap;gap:6px;font-style:normal;font-size:12px;color:var(--ink);margin-top:6px;font-variant-numeric:tabular-nums}
+.per i{font-style:normal;font-size:10.5px;font-weight:700;color:#fff;background:var(--red);border-radius:4px;padding:1px 7px;letter-spacing:.04em}
+.per b{color:var(--red);font-size:13px}
+input[readonly]{background:var(--soft);color:var(--sub);cursor:default}
+input[readonly]:focus{border-color:#d8d5cf;box-shadow:none}
+.divider{height:1px;background:var(--line);margin:6px 0 16px}
+.pricebox{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:4px 0 16px}
+.pricebox div{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.pricebox b{display:block;font-size:15px;font-variant-numeric:tabular-nums}
+.pricebox span{font-size:11px;color:var(--sub)}
+.meta{font-size:12.5px;color:var(--sub);margin:-6px 0 14px}
+.warns{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.warn{background:#fff7e8;border:1px solid #f0d9a8;color:#7a5200;border-radius:8px;padding:8px 12px;font-size:12.5px}
+.badge{display:inline-block;font-size:11.5px;font-weight:700;color:var(--red);background:var(--red-soft);border-radius:999px;padding:3px 10px}
+.check{display:flex;align-items:center;gap:8px;font-size:13px;margin:-4px 0 12px}
+.check input{width:auto}
+.section{margin-top:20px}
+table.ed{width:100%;border-collapse:collapse}
+table.ed th{font-size:11.5px;color:var(--sub);font-weight:500;text-align:left;padding:0 6px 6px}
+table.ed td{padding:4px 6px;vertical-align:middle}
+table.ed td input,table.ed td select{padding:8px 10px}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+button{font:inherit;font-size:13px;border-radius:8px;padding:9px 14px;cursor:pointer;border:1px solid #d8d5cf;background:#fff;color:var(--ink);transition:background .15s}
+button:hover{background:var(--soft)}
+button.primary{background:var(--red);border-color:var(--red);color:#fff;font-weight:700}
+button.primary:hover{background:#9e1a26}
+button.ghost{border:none;color:var(--mute);padding:6px 8px;background:none}
+button.ghost:hover{color:var(--red)}
+.sum{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:4px}
+@media(max-width:700px){.sum{grid-template-columns:1fr}}
+.sum div{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--soft)}
+.sum span{font-size:11.5px;color:var(--sub)}
+.sum b{display:block;font-size:22px;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.sum .main{background:var(--ink);border-color:var(--ink);color:#fff}
+.sum .main span{color:#bdbdc2}
+.preview-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:32px 0 12px}
+.preview-head h2{margin:0;font-size:16px}
+.paper-scroll{overflow:hidden;padding-bottom:8px}
+.paper-shadow{width:794px;margin:0 auto;transform-origin:top left;box-shadow:0 2px 24px rgba(0,0,0,.08);border-radius:2px}
+
+.per:empty{display:none}
+.mbar{display:none}
+
+/* ===== スマホ ===== */
+@media(max-width:640px){
+  .wrap{padding:20px 12px 120px}
+  header.top{margin-bottom:18px}
+  .logo-img{height:44px}
+  .brand h1{font-size:17px}
+  .brand p{font-size:11.5px}
+  .card{padding:18px 16px;border-radius:12px}
+  .guide{padding:16px 16px}
+  .guide li{font-size:13px}
+  input,select,textarea{font-size:16px;padding:12px}           /* iOSの自動ズーム防止 */
+  .row2,.row3{grid-template-columns:1fr;gap:0}
+  .amounts{grid-template-columns:1fr;gap:0}
+  .seg button{padding:12px 6px;font-size:13px}
+  .pricebox{grid-template-columns:1fr;gap:6px}
+  .pricebox div{display:flex;justify-content:space-between;align-items:center;padding:10px 14px}
+  .pricebox b{font-size:15px}
+  .pricebox span{font-size:12px}
+  .card h2{font-size:15px}
+  .card h2 .badge{display:table;margin-top:6px}
+  button{padding:12px 14px}
+  .btns button{flex:1 1 auto}
+  table.ed thead{display:none}
+  table.ed, table.ed tbody{display:block}
+  table.ed tr{display:grid;grid-template-columns:1fr 64px 78px 36px;gap:6px;padding:10px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:var(--soft)}
+  table.ed td{padding:0}
+  table.ed td.c-label{grid-column:1 / -1}
+  table.ed td input,table.ed td select{padding:10px;font-size:16px}
+  table.ed td[colspan]{grid-column:1 / -1;border:none}
+  table.ed tr:has(td[colspan]){border:none;background:none;padding:0}
+  .sum b{font-size:20px}
+  .preview-head .btns{display:none}
+  .mbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:20;align-items:center;gap:12px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:rgba(255,255,255,.96);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-top:1px solid var(--line);box-shadow:0 -4px 16px rgba(0,0,0,.05)}
+  .mbar .mt{flex:1;min-width:0;line-height:1.25}
+  .mbar .mt span{display:block;font-size:10.5px;color:var(--sub)}
+  .mbar .mt b{font-size:18px;font-variant-numeric:tabular-nums;margin-right:10px}
+  .mbar .mt b.php{font-size:15px;color:var(--sub)}
+  .mbar button{flex:none;padding:12px 22px;font-size:15px}
+}
+
+/* ===== Quote document (A4) ===== */
+#quote{width:794px;min-height:1123px;background:#fff;padding:56px 60px 48px;font-size:11.5px;color:#1c1c1e;line-height:1.65;position:relative}
+#quote .q-head{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:18px;border-bottom:1px solid #1c1c1e}
+#quote .q-logo img{height:58px;width:auto;display:block}
+#quote .q-title{text-align:right}
+#quote .q-title h1{margin:0;font-size:20px;letter-spacing:.18em;font-weight:700}
+#quote .q-title .en{font-size:8.5px;letter-spacing:.3em;color:#888;margin-top:2px}
+#quote .q-title .m{font-size:10.5px;color:#555;margin-top:10px;line-height:1.7}
+#quote .q-to{display:flex;justify-content:space-between;align-items:flex-end;margin:28px 0 22px}
+#quote .q-to .nm{font-size:18px;font-weight:700;border-bottom:1px solid #1c1c1e;padding:0 40px 4px 0;min-width:280px}
+#quote .q-to .nm small{font-size:12px;font-weight:500;margin-left:6px}
+#quote .q-to .id{font-size:10.5px;color:#555}
+#quote .q-type{font-size:10.5px;color:var(--red);font-weight:700;letter-spacing:.06em}
+#quote .q-total{display:grid;grid-template-columns:1fr 1fr;border-top:3px solid var(--red);background:#faf8f6;margin-bottom:26px}
+#quote .q-total div{padding:14px 18px}
+#quote .q-total div + div{border-left:1px solid #e5e1dc}
+#quote .q-total span{font-size:10px;color:#666;display:block;letter-spacing:.04em}
+#quote .q-total b{font-size:24px;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+#quote .q-total em{font-style:normal;font-size:10px;color:#666;margin-left:6px}
+#quote h3{font-size:11.5px;letter-spacing:.12em;margin:0 0 8px;font-weight:700;display:flex;align-items:center;gap:8px}
+#quote h3::before{content:"";width:3px;height:12px;background:var(--red);display:inline-block}
+#quote .blk{margin-bottom:22px}
+#quote table{width:100%;border-collapse:collapse}
+#quote th{background:#f3f1ed;font-weight:500;font-size:10.5px;color:#444;padding:7px 10px;text-align:left;border-bottom:1px solid #d9d5cf}
+#quote td{padding:8px 10px;border-bottom:1px solid #ebe8e3;vertical-align:top}
+#quote .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+#quote tr.sub td{font-weight:700;background:#faf9f7}
+#quote tr.pay td{font-weight:700;border-bottom:1.5px solid #1c1c1e}
+#quote .lbl{color:#555;width:110px}
+#quote .note-zero{color:var(--red);font-size:10px;font-weight:500}
+#quote .notes{font-size:10px;color:#555;padding-left:16px;margin:0}
+#quote .notes li{margin-bottom:2px}
+#quote .q-foot{display:flex;justify-content:space-between;align-items:flex-end;margin-top:30px;padding-top:12px;border-top:1px solid #e5e1dc;font-size:10px;color:#777}
+#quote .stamp{width:64px;height:64px;border:1px solid #d9d5cf;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:9px}
+#quote .muted{color:#888}
+
+@media print{
+  @page{size:A4;margin:0}
+  body{background:#fff}
+  .no-print{display:none !important}
+  .wrap{padding:0;max-width:none}
+  .paper-scroll{overflow:visible;padding:0}
+  .paper-shadow{box-shadow:none;width:auto;transform:none !important;margin:0 !important}
+  .paper-scroll{height:auto !important}
+  #quote{min-height:auto}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top no-print">
+    <div class="brand">
+      <img class="logo-img" id="logoImg" alt="JIC Tutorial Language Inc.">
+      <div>
+        <h1>現地変更 見積作成</h1>
+        <p>コース変更・お部屋変更・キャンパス転校の差額見積</p>
+      </div>
+    </div>
+    <div class="ver" id="priceVer"></div>
+  </header>
+
+  <section class="guide no-print">
+    <div class="guide-title">使い方ガイド</div>
+    <ol>
+      <li class="key"><span class="no">1</span><div><b>【重要】まずは、学生の料金が旧料金か現在の料金かを確認しよう。</b></div></li>
+      <li><span class="no">2</span><div>料金が分かったら、STEP 1で「最新料金表から選ぶ」か「手入力（旧料金）」を選び、現在のコースとお部屋、必要であれば教科書代などを入力しよう。</div></li>
+      <li><span class="no">3</span><div>次に変更後のコース・お部屋などを入力して、差額を計算しよう！</div></li>
+    </ol>
+  </section>
+
+  <div class="grid no-print">
+    <!-- ① 現在の契約 -->
+    <section class="card">
+      <div class="step">STEP 1</div>
+      <h2>現在の契約</h2>
+
+      <div class="row2">
+        <label class="field"><span>学生名</span><input id="stName" placeholder="例：山田 花子"></label>
+        <label class="field"><span>イングリッシュネーム <small>（任意）</small></span><input id="stId" placeholder="例：Hana"></label>
+      </div>
+
+      <label class="field"><span>現在の校舎</span>
+        <select id="cCampus"></select>
+      </label>
+
+      <div class="field"><span>学生の料金</span>
+        <div class="seg" id="modeSeg">
+          <button type="button" data-mode="list" class="on">最新料金表から選ぶ</button>
+          <button type="button" data-mode="manual">手入力（旧料金）</button>
+        </div>
+      </div>
+
+      <div class="mode-info" id="infoList">
+        <span class="ic">✓</span>
+        <div><b>最新料金（2026年7月1日更新版）の学生向け</b><br>コースとお部屋を選ぶと、金額が自動で入ります。</div>
+      </div>
+      <div class="alert-old" id="infoManual" style="display:none">
+        <span class="ic">!</span>
+        <div><b>旧料金の学生向け</b><br>学生の契約内容を確認し、4週あたりの金額を入力してください。</div>
+      </div>
+
+      <div id="listFields">
+        <div class="row2">
+          <label class="field"><span>コース</span><select id="cPickCourse"></select></label>
+          <label class="field"><span>お部屋</span><select id="cPickRoom"></select></label>
+        </div>
+      </div>
+
+      <div id="manualFields" style="display:none">
+        <div class="row2">
+          <label class="field"><span>コース名</span><input id="cCourse" placeholder="例：脱・初心者 ライト"></label>
+          <label class="field"><span>お部屋タイプ</span><input id="cRoom" placeholder="例：2人部屋"></label>
+        </div>
+      </div>
+
+      <div class="amounts">
+        <label class="field"><span>授業料 <small>（4週あたり・円）</small></span><input id="cTuition" type="number" inputmode="numeric" min="0" step="1" placeholder="0"><em class="per" id="cTuitionP"></em></label>
+        <label class="field"><span>教科書代 <small>（4週あたり・ペソ）</small></span><input id="cTextbook" type="number" inputmode="numeric" min="0" step="1" placeholder="0"><em class="per" id="cTbP"></em></label>
+        <label class="field"><span>寮費 <small>（4週あたり・円）</small></span><input id="cRoomFee" type="number" inputmode="numeric" min="0" step="1" placeholder="0"><em class="per" id="cRoomP"></em></label>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="row2">
+        <label class="field"><span>変更開始日</span><input id="startDate" type="date"></label>
+        <label class="field"><span>変更期間 <small>（2週単位）</small></span><select id="weeks"></select></label>
+      </div>
+      <div class="meta" id="periodText"></div>
+    </section>
+
+    <!-- ② 変更内容 -->
+    <section class="card">
+      <div class="step">STEP 2</div>
+      <h2>変更後のコース・お部屋 <span class="badge" id="changeType">—</span></h2>
+
+      <label class="field"><span>変更後の校舎</span><select id="tCampus"></select></label>
+      <label class="field"><span>変更後のコース</span><select id="tCourse"></select></label>
+      <label class="field"><span>変更後のお部屋</span><select id="tRoom"></select></label>
+
+      <div class="pricebox">
+        <div><span>授業料 / 4週</span><b id="tTuitionTxt">—</b></div>
+        <div><span>寮費 / 4週</span><b id="tRoomTxt">—</b></div>
+        <div><span>教科書代 / 4週</span><b id="tTbTxt">—</b></div>
+      </div>
+      <div class="meta" id="tLessons"></div>
+
+      <label class="check" id="ieltsWrap" style="display:none">
+        <input type="checkbox" id="ieltsFee" checked> IELTS点数保証 登録料（₱18,000）を加算する
+      </label>
+
+      <div class="warns" id="warns"></div>
+    </section>
+  </div>
+
+  <!-- ③ その他 -->
+  <section class="card section no-print">
+    <div class="step">STEP 3</div>
+    <h2>その他の費用</h2>
+    <table class="ed">
+      <thead><tr><th style="width:44%">項目</th><th>単価</th><th style="width:90px">数量</th><th style="width:100px">通貨</th><th style="width:40px"></th></tr></thead>
+      <tbody id="otherRows"></tbody>
+    </table>
+    <div class="btns">
+      <button type="button" id="addRow">＋ 行を追加</button>
+      <button type="button" id="addFee">＋ 変更手数料</button>
+      <button type="button" id="addPeak">＋ ピークシーズン サーチャージ</button>
+    </div>
+    <div class="divider" style="margin-top:20px"></div>
+    <div class="row2">
+      <label class="field"><span>担当者名</span><input id="staff" placeholder="例：JIC 日本人スタッフ 田中"></label>
+      <label class="field"><span>参考換算レート <small>（1ペソ＝○円・任意）</small></span><input id="rate" type="number" inputmode="decimal" min="0" step="0.01" placeholder="例：2.7"></label>
+    </div>
+    <label class="field"><span>備考 <small>（見積書に記載）</small></span><textarea id="memo" rows="2" placeholder="例：差額は変更開始日までに現地オフィスでお支払いください。"></textarea></label>
+  </section>
+
+  <!-- ④ 差額 -->
+  <section class="card section no-print">
+    <div class="step">STEP 4</div>
+    <h2>差額</h2>
+    <div class="sum">
+      <div><span>授業料・寮費の差額</span><b id="sYenDiff">¥0</b><span id="sYenNote"></span></div>
+      <div class="main"><span>お支払い合計（円）</span><b id="sYen">¥0</b></div>
+      <div class="main"><span>お支払い合計（ペソ・現地払い）</span><b id="sPhp">₱0</b><span id="sConv"></span></div>
+    </div>
+  </section>
+
+  <div class="preview-head no-print">
+    <h2>見積書プレビュー</h2>
+    <div class="btns" style="margin:0">
+      <button type="button" id="printBtn">印刷</button>
+      <button type="button" class="primary" id="pdfBtn">PDFをダウンロード</button>
+    </div>
+  </div>
+
+  <div class="paper-scroll" id="paperScroll">
+    <div class="paper-shadow" id="paper"><div id="quote"></div></div>
+  </div>
+</div>
+
+<div class="mbar no-print" id="mbar">
+  <div class="mt"><span>お支払い合計</span><b id="mYen">¥0</b><b class="php" id="mPhp">₱0</b></div>
+  <button type="button" class="primary" id="mPdf">PDF</button>
+</div>
+
+<script>
+/* =====================================================================
+   料金データ（JIC総合料金表 2026年7月1日更新版）
+   料金改定時はこのブロックだけを書き換えてください。
+   tuition: 授業料（円 / 4週） textbook: 教科書代（ペソ / 4週）
+   price:   寮費（円 / 4週）
+   ===================================================================== */
+const PRICE_VERSION = '料金表：2026年7月1日更新版';
+const PRICES = {
+  challenger: {
+    name: 'チャレンジャー校舎',
+    courses: [
+      { id:'c-lite',  name:'脱・初心者 ライト',     tuition:110200, textbook:1500, lessons:'1:1 ×4 / グループ ×2 / スペシャル ×2' },
+      { id:'c-core',  name:'脱・初心者 コア',       tuition:124700, textbook:1600, lessons:'1:1 ×5 / グループ ×2 / スペシャル ×2' },
+      { id:'c-std',   name:'脱・初心者 スタンダード', tuition:139200, textbook:1700, lessons:'1:1 ×6 / グループ ×2 / スペシャル ×2' },
+      { id:'i-lite',  name:'IELTS ライト',         tuition:139200, textbook:1900, lessons:'1:1 ×4 / グループ ×2 / スペシャル ×2' },
+      { id:'i-core',  name:'IELTS コア',           tuition:146450, textbook:1900, lessons:'1:1 ×5 / グループ ×2 / スペシャル ×2' },
+      { id:'i-std',   name:'IELTS スタンダード',     tuition:153700, textbook:1900, lessons:'1:1 ×6 / グループ ×2 / スペシャル ×2' },
+      { id:'i-guar',  name:'IELTS 点数保証',        tuition:153700, textbook:1900, lessons:'1:1 ×6 / グループ ×2 / スペシャル ×2（8週間限定）', ieltsGuarantee:true }
+    ],
+    rooms: [
+      { id:'r1',   name:'1人部屋',        price:188500 },
+      { id:'r2',   name:'2人部屋',        price:116000 },
+      { id:'r4l',  name:'4人部屋ロフト',   price:108750 },
+      { id:'r4s',  name:'4人部屋スタジオ', price:87000 }
+    ]
+  },
+  premium: {
+    name: 'プレミアム校舎',
+    courses: [
+      { id:'tep8',  name:'TEP ESL 8',          tuition:116000, textbook:1500, lessons:'1:1 ×3 / グループ ×3 / オプション ×2' },
+      { id:'tep9',  name:'TEP ESL 9',          tuition:130500, textbook:1600, lessons:'1:1 ×4 / グループ ×3 / オプション ×2' },
+      { id:'tep10', name:'TEP ESL 10',         tuition:145000, textbook:1700, lessons:'1:1 ×5 / グループ ×3 / オプション ×2' },
+      { id:'sp-st', name:'スピーキング スターター', tuition:116000, textbook:1500, lessons:'1:1 ×4 / グループ ×1 / オプション ×2' },
+      { id:'sp-pr', name:'スピーキング プロ',     tuition:141375, textbook:1700, lessons:'1:1 ×5 / グループ ×1 / オプション ×2' },
+      { id:'sp-ma', name:'スピーキング マスター',   tuition:166750, textbook:1900, lessons:'1:1 ×6 / グループ ×1 / オプション ×2' },
+      { id:'wh',    name:'ワーホリ準備',         tuition:130500, textbook:1600, lessons:'1:1 ×3 / グループ ×3 / オプション ×2（原則4週のみ）', workingHoliday:true },
+      { id:'toeic', name:'TOEIC',              tuition:130500, textbook:1600, lessons:'1:1 ×3 / グループ ×3 / オプション ×2' },
+      { id:'biz',   name:'ビジネスマスター',      tuition:166750, textbook:1900, lessons:'1:1 ×6 / オプション ×2' }
+    ],
+    rooms: [
+      { id:'r1a', name:'1人部屋A（R1 Bal / R1_1st）',   price:210250 },
+      { id:'r1b', name:'セミシングル / 1人部屋B（R1）',  price:181250 },
+      { id:'r2a', name:'2人部屋A（R2 Bal）',          price:137750 },
+      { id:'r2b', name:'2人部屋B（R2）',              price:123250 },
+      { id:'r4a', name:'4人部屋A（R4 Bal）',          price:108750 },
+      { id:'r4b', name:'4人部屋B（R4）',              price:94250 }
+    ]
+  }
+};
+const LOGO = 'data:image/png;base64,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nSlFM2fO1KIoeOKJJ5p33HGHzpw5U++//3697bbbtCwrmuuGDRu45ZZb9Je//KWuWbOmt7Povr4+nnjiifU333yz3n333RpCxQgty5JHHnlEN27cOLjp69at48knn1zf398/uIGrV6/uffjhh1V1Mybd2dRWq8VDDz2kGzZseM2GADzyyCP66KOPNjsb3Pm/P/3pT1d31rZ48eKPzZw5UwfBjRi588479ZZbbtEFCxZ8vnOwVq1a1fvAAw9o5+cVK1bs8NBDD2lnParKY489tv7xxx/XjgC23Pjbb79db7jhBl20aNF5HeGtW7eOmTNn6q9//Wu99tprdeHChRdt7hswvPjii2fNmjVLAZ5++un5jz322HqRKvNZunTp302fPl21XZBxznHPPffoddddp3Pnzv1+50AOKurSpUuPOeOMM3TKlCk6depUfde73qU33HCDLly48LypU6fqggULLooxcvPNN+uUKVN048aNXHHFFXrSSSfpEUccoccff7x+5CMf0Rgjs2bN0qlTp+rhhx+uhx12mE6ZMkWnT5+uMUZuuOEGnTx5sp522mk6bdo0PeOMM7TZbLJo0aKPTZ48WefOnfvNjsZ86EMf0sMOO0zvvvtuVVWKouDyyy/XyZMna0fDOtoQQuD222/XY489Vl9++eU9BmvLqrz66qs7TJs2TSdPnqwhhMHXTZs2TadMmaLee1SVU045RY866ihVVZ5//vmrp02bpocffrhOmTJFDz/8cL3qqqtUVbnsssv0qKOOGrzWRz/6UZ02bdrgz6+++uoORxxxhB522GGD64wx8vjjjy858sgjB6935JFH6lVXXaUxRq644gqdMmWKvvvd79b3ve99+thjj63oaK6q8r73vU/f+ta3almWvO1tb9OpU6dqX18fqso555yjU6ZM0RgjL7/88h4nnniiHn744XrooYfqUUcdpV//+te1sxdFUWDGjx//wK9+9SuZNGkSw4YN48Ybb5TTTz9d7rrrritVld122+3/U1UWLFgAQE9PD5dccolceumlAPz2t7+VH//4x7JixYrx559/PscffzwzZsyQWbNmye67786ll16KiDBz5kzGjBnDrbfeKr/85S+PXbp0KUVRsGzZsquzLGOPPfa4GGDmzJk6d+5cjDHMmTNnULOfffZZ9t577y39z6AZmzt3Lhs2bGCnnXZayOAQvcjXvva1lWVZUqvVePHFF8+LMbJ69eresqxahh988EFVVdavX8/pp58OwNlnn/2xAw88kJkzZ8r06dPlH//xH9m4cSN5nrNkyRJ23HHHwTUsWbKEfffdd9C1fOtb31oJ0N3dzfPPP38NwMqVK3f4zGc+s/MRRxzBww8/LDNnzpSzzjqL/v5+RIRZs2ZxyCGHcMMNN8ivfvUrOfjgg0eXZTloypcvX84xxxxTYRhtLb3hhhs0xshLL73E1KlTAfjABz6wYMSIEfzXf/2XzJ49W44//niefPJJOhbXOYfp+JJnnnmG/fbbb9DsPPPMM/T29mKtHfz92LFjB336o48+iqqSZRnGGL71rW8tbTQaXH755dLxmx/84AcHfd2mTZsGTeh3vvOd+0ePHk1vby/33HMPaZoO+qtLLvkcF198Ce985+nMmDGL0EabVqxYxX77HfAan9TR7j/+8Y/svvvu7TJjZbGeeOKp9c888yw///l/fFVVeO6556+sDsb8DY1GN5MmHcwPf/iv5HmJqnDSSX9//s0336pg+Pa3vyuPPvp489///Wc6YcLEldOmHUOWZSxc+AL7739g24/CwECLffbZt33g5t8yY8YsrrnmF5epCgsXvvBBVbjyyh+uLMvA17/+L/LwwzP16quv1okTJ3Lcccc90dG6OXPmcMEFF+itt96qIQSSJKEsS0II5HnOtGnTKMuSZrPJpEkHc+2115HnJevWbeDkk09h9uxHtSwDv/jFf0pPTw9tKyQ33njj4DQsEcE452i1WqgqEydOHPzF/PnzmTx58uCpXbZs2aBmJUnCY489xpve9KZB0zh//nx23HHHwSDBWsv9998/eEL7+voAuOiii1ixYgXXXHONAMyePXvwunfccYcCHHnkkeKcY/ny5VgrtFoVkW+//fZ7TcDUOYjz589n3333bWt7JezPf/7zw8aMGcO4ceO+4L1n4cKFqMLTTz9NrVbjG9/4hqxcuZLPfe5z2mg02HXXXX9w9913M378eIyBF154obZq1So++clPjrrkkksoCo+1luOPP74VI2zcuBFrLQcddNAGgIsvvvgdO++8M2PHjv1af38/8+bNQwRmzZrF7rvvjjGwZMkSVq1axcUXX8zll19+kDGGoig44ogjGDNmDCNHjhwMxJIkYcGCBd93zjFp0iSZMWOGAnzve98T5xz/9E//pI1Gg3333Vd+//vft2MV2QwwidBqtciybHC/jKqyaNGi67z3TJgwYeWWYyNfeeUVVq1ald1zzz1aFAWnnXbaEx2NWrZsGXvssccg0e6www5j2bJlzJ0795Y1a9bwm9/8Rh944AG+9KUvURQFL730EldeeeWxHcH29PRUeW+ec+ihhwJwxRVXAPCJT3xCb7/9dmq1GjHCwoULb1FV9t5774M7EWrHH3Ysxv777z+IS9x1193abDaJMXLmmWeqMYYXXngBkepwNZtNGo0aZ511Fo8++mg70BMmTpzI8uXLeeKJp5a8973vkXe84x3XW2u57LLLSNNqKM+iRYtqGzZs4IorrtA8zznkkIOGP/LIY7pu3TqMMZx55pnqnGP+/PnECFOnTmXRokXMmfPcfe9///vk1FNPvT/GyGWXXbZhwYIFn1+3bh1f+MIX5LOf/axMmzbtNWH0I488cj5ArVZj+vTplGWJMXD++eczZ84cms0mvb29HHjggYgIDzwwXdevX88dd9yhp556qs6aNUuLomD27NlaliVORFi4cOF7hw0bxoQJE0Z33ujcc8/lpz/9Keeff35r+fLlnH322RxwwAEHdyLuLMsGNV9VufDCC2X+/Pl6wQUXvGPUqFH68ssv8/73v5/jjjtOHnjgAc2yjHHjxj1wzjnnLD3//PN3Xr9+PV1dXXR1dfG2t71t2PTp09UYw403/nqUtXbV8uXLH//0pz990CuvvHRQqzUwpdGo8f3vf/dxYwxf/OIXpV6vIyK88sorX+nq6uK+++7j4Ycf1nPPPfec//iPn3Pcccdw4YUXiveeH/zgB/r444+3U8UBjjqq4+fOlJtvvlF32WUXROCjH/2IPPXUE/rpT1+48y677KIvvPAC55zzUY477hgBOOKIw/j5z3/Kbbfdqi+99BI/+MH3V4YQ+NrXvsK0aUdy6aWXSp7nvVdfffWGGTNmAJHPfe4SWbBgnn7qU/907NixY/XFF1/kvPPO45BDDhl+00036YgRI7jooovUOcd73vMeJk+eLJ10atmyZYwYMQKorMJBBx0EwIknniBXXfUjrSwbnHbaqXLvvXfr5Zd/gbFjx+rixYs56qijOProo+X666/XH/7wh9x00017/G/NWh2vSlP8iQAAAABJRU5ErkJggg==';
+const IELTS_GUARANTEE_FEE_PHP = 18000;
+const PEAK = { start:'2027-06-27', end:'2027-08-21', perWeek:8000 };
+const MAX_WEEKS = 24;
+/* ===================================================================== */
+
+const $ = id => document.getElementById(id);
+const WD = ['日','月','火','水','木','金','土'];
+const yen  = n => '¥' + Math.round(n).toLocaleString('ja-JP');
+const peso = n => '₱' + Math.round(n).toLocaleString('ja-JP');
+const signed = (n, f) => n > 0 ? '+' + f(n) : n < 0 ? '−' + f(-n) : f(0);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num = id => { const v = parseFloat($(id).value); return isNaN(v) ? 0 : v; };
+const parseDate = s => { if(!s) return null; const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const fmtDate = d => d ? `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${WD[d.getDay()]}）` : '—';
+const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+let others = [];
+let quoteNo = '';
+
+function opt(sel, items, blank){
+  sel.innerHTML = (blank ? `<option value="">${blank}</option>` : '') +
+    items.map(i => `<option value="${i.id}">${esc(i.name)}</option>`).join('');
+}
+function campusOpts(sel){ sel.innerHTML = Object.entries(PRICES).map(([k,v]) => `<option value="${k}">${v.name}</option>`).join(''); }
+const findCourse = (c, id) => PRICES[c].courses.find(x => x.id === id);
+const findRoom   = (c, id) => PRICES[c].rooms.find(x => x.id === id);
+
+function refreshCurrentPickers(){
+  const c = $('cCampus').value;
+  opt($('cPickCourse'), PRICES[c].courses, '— コースを選択 —');
+  opt($('cPickRoom'), PRICES[c].rooms, '— お部屋を選択 —');
+}
+let mode = 'list';
+function clearCurrent(){
+  ['cCourse','cRoom','cTuition','cRoomFee','cTextbook'].forEach(id => $(id).value = '');
+}
+function setMode(m){
+  mode = m;
+  document.querySelectorAll('#modeSeg button').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
+  const list = m === 'list';
+  $('infoList').style.display = list ? 'flex' : 'none';
+  $('infoManual').style.display = list ? 'none' : 'flex';
+  $('listFields').style.display = list ? '' : 'none';
+  $('manualFields').style.display = list ? 'none' : '';
+  ['cTuition','cRoomFee','cTextbook'].forEach(id => $(id).readOnly = list);
+  if (list){
+    // 最新料金に戻したら、選択中のコース・お部屋で入れ直す
+    clearCurrent();
+    $('cPickCourse').dispatchEvent(new Event('change'));
+    $('cPickRoom').dispatchEvent(new Event('change'));
+  }
+  calc();
+}
+function refreshTarget(){
+  const c = $('tCampus').value;
+  const keepC = $('tCourse').value, keepR = $('tRoom').value;
+  opt($('tCourse'), PRICES[c].courses);
+  opt($('tRoom'), PRICES[c].rooms);
+  if (findCourse(c, keepC)) $('tCourse').value = keepC;
+  if (findRoom(c, keepR)) $('tRoom').value = keepR;
+}
+
+function peakWeeks(start, weeks){
+  if(!start) return 0;
+  const ps = parseDate(PEAK.start), pe = parseDate(PEAK.end);
+  let n = 0;
+  for(let i=0;i<weeks;i++){
+    const ws = addDays(start, i*7), we = addDays(ws, 6);
+    if (ws <= pe && we >= ps) n++;
+  }
+  return n;
+}
+
+/* ---------- その他費用 ---------- */
+function renderOthers(){
+  $('otherRows').innerHTML = others.map((o,i) => `
+    <tr>
+      <td class="c-label"><input data-i="${i}" data-k="label" value="${esc(o.label)}" placeholder="項目名"></td>
+      <td class="c-price"><input data-i="${i}" data-k="price" type="number" inputmode="numeric" step="1" value="${o.price}" placeholder="0"></td>
+      <td class="c-qty"><input data-i="${i}" data-k="qty" type="number" inputmode="numeric" min="0" step="1" value="${o.qty}"></td>
+      <td class="c-cur"><select data-i="${i}" data-k="cur"><option value="JPY"${o.cur==='JPY'?' selected':''}>円</option><option value="PHP"${o.cur==='PHP'?' selected':''}>ペソ</option></select></td>
+      <td class="c-del"><button type="button" class="ghost" data-del="${i}" title="削除">✕</button></td>
+    </tr>`).join('') || `<tr><td colspan="5" style="color:var(--mute);font-size:12.5px;padding:8px 6px">追加費用はありません</td></tr>`;
+}
+$('otherRows').addEventListener('input', e => {
+  const t = e.target, i = t.dataset.i, k = t.dataset.k;
+  if (i === undefined) return;
+  others[i][k] = (k === 'price' || k === 'qty') ? (parseFloat(t.value) || 0) : t.value;
+  calc();
+});
+$('otherRows').addEventListener('click', e => {
+  const d = e.target.dataset.del;
+  if (d !== undefined){ others.splice(+d,1); renderOthers(); calc(); }
+});
+$('addRow').onclick = () => { others.push({label:'', price:0, qty:1, cur:'JPY'}); renderOthers(); calc(); };
+$('addFee').onclick = () => { others.push({label:'変更手数料', price:0, qty:1, cur:'JPY'}); renderOthers(); calc(); };
+$('addPeak').onclick = () => {
+  const n = peakWeeks(parseDate($('startDate').value), +$('weeks').value);
+  others.push({label:'ピークシーズン サーチャージ（週あたり）', price:PEAK.perWeek, qty:n || 1, cur:'JPY'});
+  renderOthers(); calc();
+};
+
+/* ---------- 計算 ---------- */
+function calc(){
+  const weeks = +$('weeks').value;
+  const f = weeks / 4;
+  const tbBlocks = Math.ceil(weeks / 4);
+  const start = parseDate($('startDate').value);
+  const end = start ? addDays(start, weeks*7 - 1) : null;
+
+  const cur = {
+    campus: $('cCampus').value,
+    course: $('cCourse').value.trim(), tuition: num('cTuition'),
+    room: $('cRoom').value.trim(), roomFee: num('cRoomFee'),
+    tb: num('cTextbook')
+  };
+  const tc = $('tCampus').value;
+  const tCourse = findCourse(tc, $('tCourse').value);
+  const tRoom = findRoom(tc, $('tRoom').value);
+
+  // 表示
+  $('tTuitionTxt').textContent = yen(tCourse.tuition);
+  $('tRoomTxt').textContent = yen(tRoom.price);
+  $('tTbTxt').textContent = peso(tCourse.textbook);
+  $('tLessons').textContent = tCourse.lessons;
+  $('cTuitionP').innerHTML = cur.tuition ? `<i>算出料金</i>${weeks}週間分 <b>${yen(cur.tuition * f)}</b>` : '';
+  $('cRoomP').innerHTML = cur.roomFee ? `<i>算出料金</i>${weeks}週間分 <b>${yen(cur.roomFee * f)}</b>` : '';
+  $('cTbP').innerHTML = cur.tb ? `<i>算出料金</i>${weeks}週間分（${tbBlocks}回分） <b>${peso(cur.tb * tbBlocks)}</b>` : '';
+  $('periodText').textContent = start ? `適用期間：${fmtDate(start)} 〜 ${fmtDate(end)}（${weeks}週間）` : '';
+  $('ieltsWrap').style.display = tCourse.ieltsGuarantee ? 'flex' : 'none';
+
+  // 変更種別
+  const types = [];
+  if (cur.campus !== tc) types.push('キャンパス転校');
+  if (cur.course !== tCourse.name) types.push('コース変更');
+  if (cur.room !== tRoom.name) types.push('お部屋変更');
+  const typeText = types.length ? types.join('・') : '変更なし';
+  $('changeType').textContent = typeText;
+
+  // 円：授業料・寮費
+  const tOld = Math.round(cur.tuition * f), tNew = Math.round(tCourse.tuition * f);
+  const rOld = Math.round(cur.roomFee * f), rNew = Math.round(tRoom.price * f);
+  const dT = tNew - tOld, dR = rNew - rOld;
+  const yenDiff = dT + dR;
+  const yenPay = Math.max(0, yenDiff);
+
+  // ペソ：教科書代（4週単位）
+  const tbOld = cur.tb * tbBlocks, tbNew = tCourse.textbook * tbBlocks;
+  const tbDiff = tbNew - tbOld;
+  const tbPay = Math.max(0, tbDiff);
+
+  // IELTS点数保証登録料
+  const ielts = (tCourse.ieltsGuarantee && $('ieltsFee').checked) ? IELTS_GUARANTEE_FEE_PHP : 0;
+
+  // その他
+  const oJPY = others.filter(o=>o.cur==='JPY').reduce((s,o)=>s+o.price*o.qty,0);
+  const oPHP = others.filter(o=>o.cur==='PHP').reduce((s,o)=>s+o.price*o.qty,0);
+
+  const totalJPY = yenPay + oJPY;
+  const totalPHP = tbPay + ielts + oPHP;
+  const rate = num('rate');
+
+  // 警告
+  const w = [];
+  if (!cur.tuition && !cur.roomFee) w.push(mode === 'list' ? 'STEP 1で現在のコースとお部屋を選んでください。' : 'STEP 1で現在の授業料・寮費を入力してください。');
+  if (start && start.getDay() !== 1) w.push(`開始日が${WD[start.getDay()]}曜日です（原則は月曜開始）。`);
+  if (tCourse.ieltsGuarantee && weeks !== 8) w.push('IELTS点数保証コースは8週間限定のコースです。期間をご確認ください。');
+  if (tCourse.workingHoliday && weeks === 2) w.push('ワーホリ準備コースへの2週間での変更は、事前に許可が必要です。');
+  if (tCourse.workingHoliday && weeks > 4) w.push('ワーホリ準備コースは原則4週間のみのコースです。');
+  const pw = peakWeeks(start, weeks);
+  if (pw > 0 && !others.some(o => o.label.includes('ピーク'))) w.push(`変更期間がピークシーズン（2027/6/27〜8/21）と ${pw}週 重なっています。必要に応じてサーチャージを追加してください。`);
+  if (yenDiff < 0) w.push(`授業料・寮費の差額が ${yen(-yenDiff)} のマイナスです。返金なし（0円）として計算しています。`);
+  if (tbDiff < 0) w.push('教科書代の差額がマイナスのため、返金なし（0ペソ）として計算しています。');
+  $('warns').innerHTML = w.map(x => `<div class="warn">${esc(x)}</div>`).join('');
+
+  // サマリー
+  $('sYenDiff').textContent = signed(yenDiff, yen);
+  $('sYenNote').textContent = yenDiff < 0 ? '返金なし（0円として計上）' : '';
+  $('sYen').textContent = yen(totalJPY);
+  $('sPhp').textContent = peso(totalPHP);
+  $('sConv').textContent = rate && totalPHP ? `参考：約 ${yen(totalPHP*rate)}` : '';
+  $('mYen').textContent = yen(totalJPY);
+  $('mPhp').textContent = peso(totalPHP);
+
+  renderQuote({weeks, tbBlocks, start, end, cur, tc, tCourse, tRoom, tOld, tNew, rOld, rNew, dT, dR, yenDiff, yenPay,
+    tbOld, tbNew, tbDiff, tbPay, ielts, totalJPY, totalPHP, rate, typeText});
+}
+
+/* ---------- 見積書 ---------- */
+function renderQuote(d){
+  const name = $('stName').value.trim();
+  const sid = $('stId').value.trim();
+  const staff = $('staff').value.trim();
+  const memo = $('memo').value.trim();
+  const today = new Date();
+  const otherRows = others.filter(o => o.label || o.price);
+
+  const rowHTML = o => { const fm = o.cur==='JPY' ? yen : peso; return `
+    <tr><td>${esc(o.label || 'その他')}${o.qty !== 1 ? ` <span class="muted">（${fm(o.price)} × ${o.qty}）</span>` : ''}</td>
+    <td class="n">${fm(o.price*o.qty)}</td></tr>`; };
+  const othersPHP = otherRows.filter(o=>o.cur==='PHP').map(rowHTML).join('');
+  const othersJPY = otherRows.filter(o=>o.cur==='JPY').map(rowHTML).join('');
+
+  $('quote').innerHTML = `
+  <div class="q-head">
+    <div class="q-logo"><img src="${LOGO}" alt="JIC Tutorial Language Inc."></div>
+    <div class="q-title">
+      <h1>変更見積書</h1>
+      <div class="en">CHANGE QUOTATION</div>
+      <div class="m">見積番号：${quoteNo}<br>発行日：${fmtDate(today)}</div>
+    </div>
+  </div>
+
+  <div class="q-to">
+    <div>
+      <div class="q-type">${esc(d.typeText)}</div>
+      <div class="nm">${esc(name || '　　　　　　')}<small>様</small></div>
+    </div>
+    <div class="id">${sid ? 'English Name：' + esc(sid) : ''}</div>
+  </div>
+
+  <div class="q-total">
+    <div><span>お支払い金額（日本円）</span><b>${yen(d.totalJPY)}</b></div>
+    <div><span>現地払い（フィリピンペソ）</span><b>${peso(d.totalPHP)}</b>${d.rate && d.totalPHP ? `<em>参考 約${yen(d.totalPHP*d.rate)}</em>` : ''}</div>
+  </div>
+
+  <div class="blk">
+    <h3>変更内容</h3>
+    <table>
+      <thead><tr><th class="lbl">項目</th><th>変更前</th><th>変更後</th></tr></thead>
+      <tbody>
+        <tr><td class="lbl">校舎</td><td>${esc(PRICES[d.cur.campus].name)}</td><td>${esc(PRICES[d.tc].name)}</td></tr>
+        <tr><td class="lbl">コース</td><td>${esc(d.cur.course || '—')}</td><td>${esc(d.tCourse.name)}</td></tr>
+        <tr><td class="lbl">お部屋</td><td>${esc(d.cur.room || '—')}</td><td>${esc(d.tRoom.name)}</td></tr>
+        <tr><td class="lbl">適用期間</td><td colspan="2">${d.start ? `${fmtDate(d.start)} 〜 ${fmtDate(d.end)}` : '—'}（${d.weeks}週間）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="blk">
+    <h3>授業料・寮費（日本円）</h3>
+    <table>
+      <thead><tr><th>項目</th><th class="n">変更前</th><th class="n">変更後</th><th class="n">差額</th></tr></thead>
+      <tbody>
+        <tr><td>授業料（${d.weeks}週間分）</td><td class="n">${yen(d.tOld)}</td><td class="n">${yen(d.tNew)}</td><td class="n">${signed(d.dT, yen)}</td></tr>
+        <tr><td>寮費（${d.weeks}週間分）</td><td class="n">${yen(d.rOld)}</td><td class="n">${yen(d.rNew)}</td><td class="n">${signed(d.dR, yen)}</td></tr>
+        <tr class="sub"><td>合計</td><td class="n">${yen(d.tOld + d.rOld)}</td><td class="n">${yen(d.tNew + d.rNew)}</td><td class="n">${signed(d.yenDiff, yen)}</td></tr>
+        <tr class="pay"><td colspan="3">ご請求額 ${d.yenDiff < 0 ? '<span class="note-zero">※差額がマイナスのため返金はございません</span>' : ''}</td><td class="n">${yen(d.yenPay)}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="blk">
+    <h3>現地費用（フィリピンペソ）</h3>
+    <table>
+      <thead><tr><th>項目</th><th class="n">金額</th></tr></thead>
+      <tbody>
+        <tr><td>教科書代 差額 <span class="muted">（${peso(d.cur.tb)} → ${peso(d.tCourse.textbook)} / 4週 × ${d.tbBlocks}回分）</span>${d.tbDiff < 0 ? ' <span class="note-zero">※返金なし</span>' : ''}</td><td class="n">${peso(d.tbPay)}</td></tr>
+        ${d.ielts ? `<tr><td>IELTS点数保証 登録料</td><td class="n">${peso(d.ielts)}</td></tr>` : ''}
+        ${othersPHP}
+        <tr class="pay"><td>現地払い 合計</td><td class="n">${peso(d.totalPHP)}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  ${othersJPY ? `
+  <div class="blk">
+    <h3>その他費用（日本円）</h3>
+    <table>
+      <thead><tr><th>項目</th><th class="n">金額</th></tr></thead>
+      <tbody>${othersJPY}</tbody>
+    </table>
+  </div>` : ''}
+
+  <div class="blk">
+    <h3>備考</h3>
+    <ul class="notes">
+      <li>授業料・寮費は${esc(PRICE_VERSION.replace('料金表：',''))}の料金表をもとに、4週間料金を週割りで算出しています。</li>
+      <li>差額がマイナスとなる場合、返金はございません。</li>
+      <li>教科書代は4週間単位での算出となります（2週間の変更でも4週間分を計上）。</li>
+      <li>ペソ建ての費用は現地オフィスでのお支払いとなります。</li>
+      ${memo ? `<li>${esc(memo).replace(/\n/g,'<br>')}</li>` : ''}
+    </ul>
+  </div>
+
+  <div class="q-foot">
+    <div>Baguio JIC — Tutorial Language Inc.<br>${staff ? '担当：' + esc(staff) : ''}</div>
+    <div class="stamp">印</div>
+  </div>`;
+  fitPreview();
+}
+
+/* ---------- プレビューを画面幅に合わせて縮小 ---------- */
+function fitPreview(){
+  const box = $('paperScroll'), paper = $('paper');
+  const s = Math.min(1, box.clientWidth / 794);
+  paper.style.transform = s < 1 ? `scale(${s})` : '';
+  paper.style.marginLeft = s < 1 ? '0' : '';
+  box.style.height = s < 1 ? (paper.offsetHeight * s + 8) + 'px' : '';
+}
+window.addEventListener('resize', fitPreview);
+
+/* ---------- PDF ---------- */
+function newQuoteNo(){
+  const n = new Date();
+  quoteNo = `Q${iso(n).replace(/-/g,'')}-${String(n.getHours()).padStart(2,'0')}${String(n.getMinutes()).padStart(2,'0')}`;
+}
+$('pdfBtn').onclick = () => {
+  newQuoteNo(); calc();
+  const name = $('stName').value.trim() || '学生';
+  const file = `JIC_変更見積_${name}様_${iso(new Date())}.pdf`;
+  if (typeof html2pdf === 'undefined'){ window.print(); return; }
+  const btn = $('pdfBtn'); btn.disabled = true; btn.textContent = '作成中…';
+  const mb = $('mPdf'); mb.disabled = true; mb.textContent = '作成中…';
+  // 縮小表示を一時的に解除してから書き出す
+  $('paper').style.transform = ''; $('paper').style.marginLeft = ''; $('paperScroll').style.overflow = 'visible';
+  html2pdf().set({
+    margin: 0, filename: file,
+    image: { type:'jpeg', quality:0.98 },
+    html2canvas: { scale:2, useCORS:true, scrollX:0, scrollY:0, windowWidth:1200 },
+    jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
+    pagebreak: { mode:['css','legacy'] }
+  }).from($('quote')).save().finally(() => { btn.disabled = false; btn.textContent = 'PDFをダウンロード'; mb.disabled = false; mb.textContent = 'PDF'; $('paperScroll').style.overflow = ''; fitPreview(); });
+};
+$('mPdf').onclick = () => $('pdfBtn').click();
+$('printBtn').onclick = () => { newQuoteNo(); calc(); window.print(); };
+
+/* ---------- 初期化 ---------- */
+function init(){
+  $('logoImg').src = LOGO;
+  $('priceVer').textContent = PRICE_VERSION;
+  campusOpts($('cCampus')); campusOpts($('tCampus'));
+  refreshCurrentPickers(); refreshTarget();
+  $('weeks').innerHTML = Array.from({length: MAX_WEEKS/2}, (_,i) => (i+1)*2).map(n => `<option value="${n}"${n===4?' selected':''}>${n}週間</option>`).join('');
+
+  const t = new Date(); t.setHours(0,0,0,0);
+  const add = ((8 - t.getDay()) % 7) || 7;   // 次の月曜
+  $('startDate').value = iso(addDays(t, add));
+
+  $('cCampus').onchange = () => { refreshCurrentPickers(); if (mode === 'list') clearCurrent(); calc(); };
+  $('modeSeg').addEventListener('click', e => { const m = e.target.dataset.mode; if (m) setMode(m); });
+  setMode('list');
+  $('cPickCourse').onchange = () => {
+    const c = findCourse($('cCampus').value, $('cPickCourse').value);
+    $('cCourse').value = c ? c.name : ''; $('cTuition').value = c ? c.tuition : ''; $('cTextbook').value = c ? c.textbook : '';
+    calc();
+  };
+  $('cPickRoom').onchange = () => {
+    const r = findRoom($('cCampus').value, $('cPickRoom').value);
+    $('cRoom').value = r ? r.name : ''; $('cRoomFee').value = r ? r.price : '';
+    calc();
+  };
+  $('tCampus').onchange = () => { refreshTarget(); calc(); };
+  ['tCourse','tRoom','weeks','startDate','ieltsFee','stName','stId','cCourse','cTuition','cRoom','cRoomFee','cTextbook','staff','rate','memo']
+    .forEach(id => { $(id).addEventListener('input', calc); $(id).addEventListener('change', calc); });
+
+  newQuoteNo(); renderOthers(); calc();
+}
+init();
+</script>
+</body>
+</html>
