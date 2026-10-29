@@ -277,6 +277,7 @@ button.ghost:hover{color:var(--red)}
       <h2>変更後のコース・お部屋 <span class="badge" id="changeType">—</span></h2>
 
       <label class="field"><span>変更後の校舎</span><select id="tCampus"></select></label>
+      <div class="meta" id="transferNote" style="display:none;margin-top:-8px">キャンパス転校のため、コースとお部屋はどちらも転校先のものを選んでください。</div>
       <label class="field"><span>変更後のコース</span><select id="tCourse"></select></label>
       <label class="field"><span>変更後のお部屋</span><select id="tRoom"></select></label>
 
@@ -456,13 +457,17 @@ function setMode(m){
   }
   calc();
 }
+const KEEP = 'keep';
 function refreshTarget(){
   const c = $('tCampus').value;
-  const keepC = $('tCourse').value, keepR = $('tRoom').value;
-  opt($('tCourse'), PRICES[c].courses);
-  opt($('tRoom'), PRICES[c].rooms);
-  if (findCourse(c, keepC)) $('tCourse').value = keepC;
-  if (findRoom(c, keepR)) $('tRoom').value = keepR;
+  const same = c === $('cCampus').value;   // 同じ校舎なら「変更なし」を選べる
+  const prevC = $('tCourse').value, prevR = $('tRoom').value;
+  const keepOpt = label => same ? `<option value="${KEEP}">${label}</option>` : '';
+  $('tCourse').innerHTML = keepOpt('変更なし（現在のコースのまま）') + PRICES[c].courses.map(i => `<option value="${i.id}">${esc(i.name)}</option>`).join('');
+  $('tRoom').innerHTML   = keepOpt('変更なし（現在のお部屋のまま）') + PRICES[c].rooms.map(i => `<option value="${i.id}">${esc(i.name)}</option>`).join('');
+  if ((prevC === KEEP && same) || findCourse(c, prevC)) $('tCourse').value = prevC;
+  if ((prevR === KEEP && same) || findRoom(c, prevR)) $('tRoom').value = prevR;
+  $('transferNote').style.display = same ? 'none' : 'block';
 }
 
 function peakWeeks(start, weeks){
@@ -520,8 +525,13 @@ function calc(){
     tb: num('cTextbook')
   };
   const tc = $('tCampus').value;
-  const tCourse = findCourse(tc, $('tCourse').value);
-  const tRoom = findRoom(tc, $('tRoom').value);
+  const keepCourse = $('tCourse').value === KEEP, keepRoom = $('tRoom').value === KEEP;
+  const tCourse = keepCourse
+    ? { name: cur.course || '現在のコース', tuition: cur.tuition, textbook: cur.tb, lessons: 'コースは変更なし（現在の料金のまま計算）', keep: true }
+    : findCourse(tc, $('tCourse').value);
+  const tRoom = keepRoom
+    ? { name: cur.room || '現在のお部屋', price: cur.roomFee, keep: true }
+    : findRoom(tc, $('tRoom').value);
 
   // 表示
   $('tTuitionTxt').textContent = yen(tCourse.tuition);
@@ -537,8 +547,8 @@ function calc(){
   // 変更種別
   const types = [];
   if (cur.campus !== tc) types.push('キャンパス転校');
-  if (cur.course !== tCourse.name) types.push('コース変更');
-  if (cur.room !== tRoom.name) types.push('お部屋変更');
+  if (!tCourse.keep && cur.course !== tCourse.name) types.push('コース変更');
+  if (!tRoom.keep && cur.room !== tRoom.name) types.push('お部屋変更');
   const typeText = types.length ? types.join('・') : '変更なし';
   $('changeType').textContent = typeText;
 
@@ -568,6 +578,7 @@ function calc(){
   // 警告
   const w = [];
   if (!cur.tuition && !cur.roomFee) w.push(mode === 'list' ? 'STEP 1で現在のコースとお部屋を選んでください。' : 'STEP 1で現在の授業料・寮費を入力してください。');
+  if (tCourse.keep && tRoom.keep && cur.campus === tc) w.push('STEP 2で、変更後のコースかお部屋を選んでください。');
   if (start && start.getDay() !== 1) w.push(`開始日が${WD[start.getDay()]}曜日です（原則は月曜開始）。`);
   if (tCourse.ieltsGuarantee && weeks !== 8) w.push('IELTS点数保証コースは8週間限定のコースです。期間をご確認ください。');
   if (tCourse.workingHoliday && weeks === 2) w.push('ワーホリ準備コースへの2週間での変更は、事前に許可が必要です。');
@@ -635,8 +646,8 @@ function renderQuote(d){
       <thead><tr><th class="lbl">項目</th><th>変更前</th><th>変更後</th></tr></thead>
       <tbody>
         <tr><td class="lbl">校舎</td><td>${esc(PRICES[d.cur.campus].name)}</td><td>${esc(PRICES[d.tc].name)}</td></tr>
-        <tr><td class="lbl">コース</td><td>${esc(d.cur.course || '—')}</td><td>${esc(d.tCourse.name)}</td></tr>
-        <tr><td class="lbl">お部屋</td><td>${esc(d.cur.room || '—')}</td><td>${esc(d.tRoom.name)}</td></tr>
+        <tr><td class="lbl">コース</td><td>${esc(d.cur.course || '—')}</td><td>${d.tCourse.keep ? '<span class="muted">変更なし</span>' : esc(d.tCourse.name)}</td></tr>
+        <tr><td class="lbl">お部屋</td><td>${esc(d.cur.room || '—')}</td><td>${d.tRoom.keep ? '<span class="muted">変更なし</span>' : esc(d.tRoom.name)}</td></tr>
         <tr><td class="lbl">適用期間</td><td colspan="2">${d.start ? `${fmtDate(d.start)} 〜 ${fmtDate(d.end)}` : '—'}（${d.weeks}週間）</td></tr>
       </tbody>
     </table>
@@ -742,7 +753,7 @@ function init(){
   const add = ((8 - t.getDay()) % 7) || 7;   // 次の月曜
   $('startDate').value = iso(addDays(t, add));
 
-  $('cCampus').onchange = () => { refreshCurrentPickers(); if (mode === 'list') clearCurrent(); calc(); };
+  $('cCampus').onchange = () => { refreshCurrentPickers(); if (mode === 'list') clearCurrent(); refreshTarget(); calc(); };
   $('modeSeg').addEventListener('click', e => { const m = e.target.dataset.mode; if (m) setMode(m); });
   setMode('list');
   $('cPickCourse').onchange = () => {
