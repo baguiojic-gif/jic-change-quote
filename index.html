@@ -257,9 +257,9 @@ button.ghost:hover{color:var(--red)}
       </div>
 
       <div class="amounts">
-        <label class="field"><span>授業料 <small>（4週あたり・円）</small></span><input id="cTuition" type="number" inputmode="numeric" min="0" step="1" placeholder="0"><em class="per" id="cTuitionP"></em></label>
-        <label class="field"><span>教科書代 <small>（4週あたり・ペソ）</small></span><input id="cTextbook" type="number" inputmode="numeric" min="0" step="1" placeholder="0"><em class="per" id="cTbP"></em></label>
-        <label class="field"><span>寮費 <small>（4週あたり・円）</small></span><input id="cRoomFee" type="number" inputmode="numeric" min="0" step="1" placeholder="0"><em class="per" id="cRoomP"></em></label>
+        <label class="field"><span>授業料 <small>（4週あたり・円）</small></span><input id="cTuition" type="text" inputmode="numeric" autocomplete="off" class="amt" placeholder="0"><em class="per" id="cTuitionP"></em></label>
+        <label class="field"><span>教科書代 <small>（4週あたり・ペソ）</small></span><input id="cTextbook" type="text" inputmode="numeric" autocomplete="off" class="amt" placeholder="0"><em class="per" id="cTbP"></em></label>
+        <label class="field"><span>寮費 <small>（4週あたり・円）</small></span><input id="cRoomFee" type="text" inputmode="numeric" autocomplete="off" class="amt" placeholder="0"><em class="per" id="cRoomP"></em></label>
       </div>
 
       <div class="divider"></div>
@@ -311,7 +311,7 @@ button.ghost:hover{color:var(--red)}
     <div class="divider" style="margin-top:20px"></div>
     <div class="row2">
       <label class="field"><span>担当者名</span><input id="staff" placeholder="例：JIC 日本人スタッフ 田中"></label>
-      <label class="field"><span>参考換算レート <small>（1ペソ＝○円・任意）</small></span><input id="rate" type="number" inputmode="decimal" min="0" step="0.01" placeholder="例：2.7"></label>
+      <label class="field"><span>参考換算レート <small>（1ペソ＝○円・任意）</small></span><input id="rate" type="text" inputmode="decimal" autocomplete="off" placeholder="例：2.7"></label>
     </div>
     <label class="field"><span>備考 <small>（見積書に記載）</small></span><textarea id="memo" rows="2" placeholder="例：差額は変更開始日までに現地オフィスでお支払いください。"></textarea></label>
   </section>
@@ -407,7 +407,13 @@ const yen  = n => '¥' + Math.round(n).toLocaleString('ja-JP');
 const peso = n => '₱' + Math.round(n).toLocaleString('ja-JP');
 const signed = (n, f) => n > 0 ? '+' + f(n) : n < 0 ? '−' + f(-n) : f(0);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const num = id => { const v = parseFloat($(id).value); return isNaN(v) ? 0 : v; };
+// 全角数字・カンマ・円記号などが混ざっていても数字として読む
+const parseAmt = str => {
+  const t = String(str ?? '').replace(/[０-９．]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).replace(/[^0-9.\-]/g, '');
+  const v = parseFloat(t); return isNaN(v) ? 0 : v;
+};
+const num = id => parseAmt($(id).value);
+const fmtAmt = v => (v === '' || v == null) ? '' : Number(v).toLocaleString('ja-JP');
 const parseDate = s => { if(!s) return null; const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
 const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
 const fmtDate = d => d ? `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${WD[d.getDay()]}）` : '—';
@@ -475,8 +481,8 @@ function renderOthers(){
   $('otherRows').innerHTML = others.map((o,i) => `
     <tr>
       <td class="c-label"><input data-i="${i}" data-k="label" value="${esc(o.label)}" placeholder="項目名"></td>
-      <td class="c-price"><input data-i="${i}" data-k="price" type="number" inputmode="numeric" step="1" value="${o.price}" placeholder="0"></td>
-      <td class="c-qty"><input data-i="${i}" data-k="qty" type="number" inputmode="numeric" min="0" step="1" value="${o.qty}"></td>
+      <td class="c-price"><input data-i="${i}" data-k="price" type="text" inputmode="numeric" autocomplete="off" value="${o.price ? fmtAmt(o.price) : ''}" placeholder="0"></td>
+      <td class="c-qty"><input data-i="${i}" data-k="qty" type="text" inputmode="numeric" autocomplete="off" value="${o.qty}"></td>
       <td class="c-cur"><select data-i="${i}" data-k="cur"><option value="JPY"${o.cur==='JPY'?' selected':''}>円</option><option value="PHP"${o.cur==='PHP'?' selected':''}>ペソ</option></select></td>
       <td class="c-del"><button type="button" class="ghost" data-del="${i}" title="削除">✕</button></td>
     </tr>`).join('') || `<tr><td colspan="5" style="color:var(--mute);font-size:12.5px;padding:8px 6px">追加費用はありません</td></tr>`;
@@ -484,7 +490,7 @@ function renderOthers(){
 $('otherRows').addEventListener('input', e => {
   const t = e.target, i = t.dataset.i, k = t.dataset.k;
   if (i === undefined) return;
-  others[i][k] = (k === 'price' || k === 'qty') ? (parseFloat(t.value) || 0) : t.value;
+  others[i][k] = (k === 'price' || k === 'qty') ? parseAmt(t.value) : t.value;
   calc();
 });
 $('otherRows').addEventListener('click', e => {
@@ -741,17 +747,25 @@ function init(){
   setMode('list');
   $('cPickCourse').onchange = () => {
     const c = findCourse($('cCampus').value, $('cPickCourse').value);
-    $('cCourse').value = c ? c.name : ''; $('cTuition').value = c ? c.tuition : ''; $('cTextbook').value = c ? c.textbook : '';
+    $('cCourse').value = c ? c.name : ''; $('cTuition').value = c ? fmtAmt(c.tuition) : ''; $('cTextbook').value = c ? fmtAmt(c.textbook) : '';
     calc();
   };
   $('cPickRoom').onchange = () => {
     const r = findRoom($('cCampus').value, $('cPickRoom').value);
-    $('cRoom').value = r ? r.name : ''; $('cRoomFee').value = r ? r.price : '';
+    $('cRoom').value = r ? r.name : ''; $('cRoomFee').value = r ? fmtAmt(r.price) : '';
     calc();
   };
   $('tCampus').onchange = () => { refreshTarget(); calc(); };
   ['tCourse','tRoom','weeks','startDate','ieltsFee','stName','stId','cCourse','cTuition','cRoom','cRoomFee','cTextbook','staff','rate','memo']
     .forEach(id => { $(id).addEventListener('input', calc); $(id).addEventListener('change', calc); });
+
+  document.addEventListener('focusout', e => {
+    const t = e.target;
+    if (t.matches('input.amt') || t.dataset.k === 'price'){
+      if (t.readOnly) return;
+      t.value = t.value.trim() === '' ? '' : fmtAmt(parseAmt(t.value));
+    }
+  });
 
   newQuoteNo(); renderOthers(); calc();
 }
